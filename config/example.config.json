@@ -1,0 +1,16 @@
+{
+    "db": {
+        "url": "localhost",
+        "port": "5432",
+        "user": "",
+        "password": "",
+        "dbname": "mytft"
+    },
+    "riot": {
+        "key": "",
+        "rate_limit": 100,
+        "rate_period": 120000,
+        "rate_efficiency": 0.9,
+        "matches_after": 0
+    }
+}

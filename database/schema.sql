@@ -45,7 +45,7 @@ CREATE TABLE match (
     id          TEXT PRIMARY KEY NOT NULL,
     date BIGINT NOT NULL,
     data_version TEXT,
-    data JSONB NOT NULL
+    data JSONB
 );
 
 CREATE TABLE summoner_match (

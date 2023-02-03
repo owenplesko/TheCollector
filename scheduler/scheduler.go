@@ -55,6 +55,7 @@ func (s *Scheduler) CollectNext() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	// wait for available job
+
 	for len(s.available) == 0 {
 		s.jobAdded.Wait()
 	}

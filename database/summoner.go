@@ -57,13 +57,13 @@ func SummonerExists(puuid string) bool {
 }
 
 func UpdateMatchesLastUpdated(puuid string, time int64) error {
-	query := `UPDATE summoner SET matches_last_updated=? WHERE puuid=?`
+	query := `UPDATE summoner SET matches_last_updated=$1 WHERE puuid=$2;`
 	_, err := db.Exec(query, time, puuid)
 	return err
 }
 
 func QueryPuuidMatchesLastUpdated() (string, int64, error) {
-	query := `SELECT puuid, matches_last_updated FROM summoner ORDER BY matches_last_updated LIMIT 1`
+	query := `SELECT puuid, matches_last_updated FROM summoner ORDER BY matches_last_updated LIMIT 1;`
 	var puuid string
 	var lastUpdated int64
 	row := db.QueryRow(query)

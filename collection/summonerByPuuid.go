@@ -27,9 +27,14 @@ func (c SummonerByPuuidCollecter) Collect() error {
 	// get summoner from riot
 	summoner, err := riot.GetSummonerByPuuid(c.Region, c.Puuid)
 	if err != nil {
+		fmt.Printf("Error getting summoner %s from riot: %s\n", c.Puuid, err)
 		return err
 	}
 
 	// store summoner in db
-	return db.UpsertSummoner(summoner)
+	err = db.UpsertSummoner(summoner)
+	if err != nil {
+		fmt.Printf("Error inserting summoner %s into db %s\n", c.Puuid, err)
+	}
+	return err
 }

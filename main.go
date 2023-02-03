@@ -40,16 +40,16 @@ func main() {
 	}()
 
 	for {
-		if matchScheduler.IsEmpty() {
-			go func() {
+		go func() {
+			if matchScheduler.IsEmpty() {
 				puuid, lastUpdated, err := db.QueryPuuidMatchesLastUpdated()
 				if err != nil {
 					fmt.Print(err)
 					return
 				}
 				matchScheduler.Schedule(collect.NewMatchHistoryCollecter(puuid, lastUpdated))
-			}()
-		}
+			}
+		}()
 		matchScheduler.CollectNext()
 		time.Sleep(requestInterval)
 	}

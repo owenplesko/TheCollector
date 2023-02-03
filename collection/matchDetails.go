@@ -29,6 +29,7 @@ func (c MatchDetailsCollecter) Collect() error {
 	// get match details from riot
 	match, err := riot.GetMatchDetails(c.MatchId)
 	if err != nil {
+		fmt.Printf("ERROR failed to get match %v from riot: %v\n", c.MatchId, err)
 		return err
 	}
 
@@ -57,10 +58,15 @@ func (c MatchDetailsCollecter) Collect() error {
 
 	for err := range errorChan {
 		if err != nil {
+			fmt.Printf("Error failed to get summoner for match %v, %v\n", c.MatchId, err)
 			return err
 		}
 	}
 
 	// store match
-	return db.StoreMatch(match)
+	err = db.StoreMatch(match)
+	if err != nil {
+		fmt.Printf("Error inserting match %v, %v\n", c.MatchId, err)
+	}
+	return err
 }

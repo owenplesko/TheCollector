@@ -1,44 +1,19 @@
 package db
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"thecollector/riot"
 )
 
 func StoreMatch(match *riot.Match) error {
-	// start transaction for new match and summoner_match connections
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-	// on err rollback transaction to prevent dangling matches
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		}
-	}()
-
 	// insert match
-	query := `
-		INSERT INTO match (
-			id,
-			date,
-			data_version,
-			data
-		)
-		VALUES (?, ?, ?, ?)
-	`
-	data, err := json.Marshal(match.Info)
-	if err != nil {
-		return err
-	}
-	_, err = tx.Exec(query,
+	query := `INSERT INTO match (id, date, data_version, data) VALUES ($1, $2, $3, $4)`
+	_, err := db.Exec(query,
 		match.MetaData.MatchId,
 		match.Info.Date,
 		match.MetaData.DataVersion,
-		data,
+		match.Info,
 	)
 	if err != nil {
 		return err
@@ -54,17 +29,16 @@ func StoreMatch(match *riot.Match) error {
 		queryBuilder.WriteString(fmt.Sprintf("('%s', '%s')", puuid, match.MetaData.MatchId))
 	}
 	_, err = db.Exec(queryBuilder.String())
-	if err != nil {
-		return err
-	}
 
-	return tx.Commit()
+	return err
 }
 
 func MatchExists(matchId string) bool {
-	query := `SELECT EXISTS (SELECT 1 FROM match WHERE id=?);`
 	var exists bool
-	row := db.QueryRow(query, matchId)
-	row.Scan(&exists)
+	err := db.QueryRow(`SELECT EXISTS (SELECT 1 FROM match WHERE id=$1)`, matchId).Scan(&exists)
+	if err != nil {
+		fmt.Printf("Error checking if match %s exists: %s\n", matchId, err)
+		return false
+	}
 	return exists
 }

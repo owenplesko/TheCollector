@@ -49,7 +49,11 @@ func (c MatchHistoryCollecter) Collect() error {
 
 	// await matches collected
 	wg.Wait()
-
+	
 	// store matches updated time
-	return db.UpdateMatchesLastUpdated(c.Puuid, updatedAt)
+	err = db.UpdateMatchesLastUpdated(c.Puuid, updatedAt)
+	if err != nil {
+		fmt.Printf("Error updating matches last updated for %s value %v, %v\n", c.Puuid, updatedAt, err)
+	}
+	return err
 }

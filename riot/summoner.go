@@ -8,7 +8,7 @@ type Summoner struct {
 	Id            string `json:"id"            validate:"required"`
 	AccountId     string `json:"accountId"     validate:"required"`
 	Name          string `json:"name"          validate:"required"`
-	ProfileIconId int    `json:"profileIconId" validate:"required"`
+	ProfileIconId int    `json:"profileIconId"`
 	RevisionDate  int    `json:"revisionDate"  validate:"required"`
 	SummonerLevel int    `json:"summonerLevel" validate:"required"`
 }

@@ -7,9 +7,19 @@ import (
 )
 
 func StoreMatch(match *riot.Match) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+
 	// insert match
-	query := `INSERT INTO match (id, date, data_version, data) VALUES ($1, $2, $3, $4)`
-	_, err := db.Exec(query,
+	_, err = tx.Exec(`INSERT INTO match (id, date, data_version, data) VALUES ($1, $2, $3, $4)`,
 		match.MetaData.MatchId,
 		match.Info.Date,
 		match.MetaData.DataVersion,
@@ -21,16 +31,16 @@ func StoreMatch(match *riot.Match) error {
 
 	// insert summoner_match connections
 	var queryBuilder strings.Builder
-	queryBuilder.WriteString("INSERT INTO summoner_match (summoner_puuid, match_id) VALUES ")
+	queryBuilder.WriteString(`INSERT INTO summoner_match (summoner_puuid, match_id) VALUES `)
 	for i, puuid := range match.MetaData.Participants {
 		if i != 0 {
 			queryBuilder.WriteString(",")
 		}
 		queryBuilder.WriteString(fmt.Sprintf("('%s', '%s')", puuid, match.MetaData.MatchId))
 	}
-	_, err = db.Exec(queryBuilder.String())
+	_, err = tx.Exec(queryBuilder.String())
 
-	return err
+	return tx.Commit()
 }
 
 func MatchExists(matchId string) bool {

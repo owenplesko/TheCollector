@@ -62,11 +62,18 @@ func UpdateMatchesLastUpdated(puuid string, time int64) error {
 	return err
 }
 
-func QueryPuuidMatchesLastUpdated() (string, int64, error) {
-	query := `SELECT puuid, matches_last_updated FROM summoner ORDER BY matches_last_updated LIMIT 1;`
+func QueryPuuidMatchesLastUpdated(exclude []string) (string, int64, error) {
+	var queryBuilder strings.Builder
+	queryBuilder.WriteString("SELECT puuid, matches_last_updated FROM summoner ")
+	if len(exclude) > 0 {
+		queryBuilder.WriteString("WHERE puuid NOT IN ('")
+		queryBuilder.WriteString(strings.Join(exclude, "', '"))
+		queryBuilder.WriteString("') ")
+	}
+	queryBuilder.WriteString("ORDER BY matches_last_updated LIMIT 1")
 	var puuid string
 	var lastUpdated int64
-	row := db.QueryRow(query)
+	row := db.QueryRow(queryBuilder.String())
 	err := row.Scan(&puuid, &lastUpdated)
 	return puuid, lastUpdated, err
 }

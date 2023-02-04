@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"reflect"
 	"sync"
 )
 
@@ -83,4 +84,16 @@ func (s *Scheduler) IsEmpty() bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return len(s.available) == 0
+}
+
+func (s *Scheduler) ListIdsOfCollecterType(t reflect.Type) []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var filteredIds []string
+	for id, job := range s.jobs {
+		if reflect.TypeOf(job.collecter) == t {
+			filteredIds = append(filteredIds, id)
+		}
+	}
+	return filteredIds
 }

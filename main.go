@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"reflect"
 	collect "thecollector/collection"
 	"thecollector/config"
 	db "thecollector/database"
@@ -42,7 +43,8 @@ func main() {
 	for {
 		go func() {
 			if matchScheduler.IsEmpty() {
-				puuid, lastUpdated, err := db.QueryPuuidMatchesLastUpdated()
+				exclude := matchScheduler.ListIdsOfCollecterType(reflect.TypeOf(collect.MatchHistoryCollecter{}))
+				puuid, lastUpdated, err := db.QueryPuuidMatchesLastUpdated(exclude)
 				if err != nil {
 					fmt.Print(err)
 					return

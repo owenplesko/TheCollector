@@ -45,10 +45,6 @@ func StoreMatch(match *riot.Match) error {
 
 func MatchExists(matchId string) bool {
 	var exists bool
-	err := db.QueryRow(`SELECT EXISTS (SELECT 1 FROM match WHERE id=$1)`, matchId).Scan(&exists)
-	if err != nil {
-		fmt.Printf("Error checking if match %s exists: %s\n", matchId, err)
-		return false
-	}
+	db.QueryRow(`SELECT EXISTS (SELECT 1 FROM match WHERE id=$1)`, matchId).Scan(&exists)
 	return exists
 }

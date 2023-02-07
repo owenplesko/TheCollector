@@ -7,7 +7,7 @@ import (
 )
 
 func UpsertSummoner(summoner *riot.Summoner) error {
-	query := `
+	_, err := db.Exec(`
 		INSERT INTO summoner (
 			puuid,
 			region,
@@ -30,10 +30,8 @@ func UpsertSummoner(summoner *riot.Summoner) error {
 			display_name= $7,
 			raw_name= $8,
 			summoner_level= $9,
-			last_updated= $10;
-	`
-
-	_, err := db.Exec(query,
+			last_updated= $10
+		`,
 		summoner.Puuid,
 		summoner.Region,
 		summoner.Id,
@@ -49,16 +47,13 @@ func UpsertSummoner(summoner *riot.Summoner) error {
 }
 
 func SummonerExists(puuid string) bool {
-	query := `SELECT EXISTS (SELECT 1 FROM summoner WHERE puuid=$1);`
 	var exists bool
-	row := db.QueryRow(query, puuid)
-	row.Scan(&exists)
+	db.QueryRow(`SELECT EXISTS (SELECT 1 FROM summoner WHERE puuid=$1)`, puuid).Scan(&exists)
 	return exists
 }
 
 func UpdateMatchesLastUpdated(puuid string, time int64) error {
-	query := `UPDATE summoner SET matches_last_updated=$1 WHERE puuid=$2;`
-	_, err := db.Exec(query, time, puuid)
+	_, err := db.Exec(`UPDATE summoner SET matches_last_updated=$1 WHERE puuid=$2`, time, puuid)
 	return err
 }
 

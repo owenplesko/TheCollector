@@ -34,14 +34,19 @@ func main() {
 	collect.SetMatchScheduler(matchScheduler)
 
 	go func() {
-		for {
-			summonerScheduler.CollectNext()
-			time.Sleep(requestInterval)
+		for range time.Tick(requestInterval) {
+			go summonerScheduler.CollectNext()
 		}
 	}()
 
-	for {
+	time.Sleep(requestInterval / 2)
+
+	for range time.Tick(requestInterval) {
 		go func() {
+			if summonerScheduler.Size() <= 100 {
+				matchScheduler.CollectNext()
+			}
+
 			if matchScheduler.IsEmpty() {
 				exclude := matchScheduler.ListIdsOfCollecterType(reflect.TypeOf(collect.MatchHistoryCollecter{}))
 				puuid, lastUpdated, err := db.QueryPuuidMatchesLastUpdated(exclude)
@@ -52,7 +57,5 @@ func main() {
 				matchScheduler.Schedule(collect.NewMatchHistoryCollecter(puuid, lastUpdated))
 			}
 		}()
-		matchScheduler.CollectNext()
-		time.Sleep(requestInterval)
 	}
 }

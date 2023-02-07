@@ -49,7 +49,7 @@ func UpsertSummoner(summoner *riot.Summoner) error {
 }
 
 func SummonerExists(puuid string) bool {
-	query := `SELECT EXISTS (SELECT 1 FROM summoner WHERE puuid=?);`
+	query := `SELECT EXISTS (SELECT 1 FROM summoner WHERE puuid=$1);`
 	var exists bool
 	row := db.QueryRow(query, puuid)
 	row.Scan(&exists)

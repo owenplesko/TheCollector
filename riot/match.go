@@ -80,7 +80,7 @@ func GetMatchDetails(matchId string) (*Match, error) {
 func GetMatchHistory(puuid string, after int64) ([]string, error) {
 	var history []string
 	region := "americas"
-	count := 10
+	count := 200
 	if matchesAfter > after {
 		after = matchesAfter
 	}

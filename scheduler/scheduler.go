@@ -25,12 +25,10 @@ type Scheduler struct {
 	mu        sync.Mutex
 	available []*job
 	jobs      map[string]*job
-	jobAdded  sync.Cond
 }
 
 func NewScheduler() *Scheduler {
 	s := new(Scheduler)
-	s.jobAdded.L = &s.mu
 	s.jobs = make(map[string]*job)
 	return s
 }
@@ -45,7 +43,6 @@ func (s *Scheduler) Schedule(collecter Collecter) chan error {
 		job = newJob(collecter)
 		s.jobs[id] = job
 		s.available = append(s.available, job)
-		s.jobAdded.Signal()
 	}
 	completion := make(chan error)
 	job.listeners = append(job.listeners, completion)
@@ -55,10 +52,9 @@ func (s *Scheduler) Schedule(collecter Collecter) chan error {
 func (s *Scheduler) CollectNext() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	// wait for available job
-
-	for len(s.available) == 0 {
-		s.jobAdded.Wait()
+	// skip if no jobs available
+	if len(s.available) == 0 {
+		return
 	}
 
 	// pop available job from queue
@@ -84,6 +80,12 @@ func (s *Scheduler) IsEmpty() bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return len(s.available) == 0
+}
+
+func (s *Scheduler) Size() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return len(s.jobs)
 }
 
 func (s *Scheduler) ListIdsOfCollecterType(t reflect.Type) []string {

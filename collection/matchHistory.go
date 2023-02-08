@@ -24,7 +24,7 @@ func (c MatchHistoryCollecter) Id() string {
 	return c.Puuid
 }
 
-func (c MatchHistoryCollecter) Collect() error {
+func (c MatchHistoryCollecter) Collect(priority bool) error {
 	fmt.Printf("Collecting match history for summoner %v\n", c.Puuid)
 	// get match history from riot
 	updatedAt := time.Now().Unix()
@@ -42,14 +42,14 @@ func (c MatchHistoryCollecter) Collect() error {
 			wg.Add(1)
 			go func(matchId string) {
 				defer wg.Done()
-				<-matchScheduler.Schedule(NewMatchDetailsCollecter(matchId))
+				<-matchScheduler.Schedule(NewMatchDetailsCollecter(matchId), priority)
 			}(matchId)
 		}
 	}
 
 	// await matches collected
 	wg.Wait()
-	
+
 	// store matches updated time
 	err = db.UpdateMatchesLastUpdated(c.Puuid, updatedAt)
 	if err != nil {

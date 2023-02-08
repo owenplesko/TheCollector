@@ -22,7 +22,7 @@ func (c MatchDetailsCollecter) Id() string {
 	return c.MatchId
 }
 
-func (c MatchDetailsCollecter) Collect() error {
+func (c MatchDetailsCollecter) Collect(priority bool) error {
 	fmt.Printf("Collecting match %v\n", c.MatchId)
 	region := strings.Split(c.MatchId, "_")[0]
 
@@ -42,7 +42,7 @@ func (c MatchDetailsCollecter) Collect() error {
 			wg.Add(1)
 			go func(puuid string) {
 				defer wg.Done()
-				err := <-summonerScheduler.Schedule(NewSummonerByPuuidCollecter(region, puuid))
+				err := <-summonerScheduler.Schedule(NewSummonerByPuuidCollecter(region, puuid), priority)
 				if err != nil {
 					errorChan <- err
 				}

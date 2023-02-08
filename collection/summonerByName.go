@@ -22,7 +22,7 @@ func (c SummonerByNameCollecter) Id() string {
 	return c.Region + c.RawName
 }
 
-func (c SummonerByNameCollecter) Collect() error {
+func (c SummonerByNameCollecter) Collect(_ bool) error {
 	fmt.Printf("Collecting summoner %v\n", c.RawName)
 	// get summoner from riot
 	summoner, err := riot.GetSummonerByName(c.Region, c.RawName)

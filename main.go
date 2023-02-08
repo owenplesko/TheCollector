@@ -43,7 +43,7 @@ func main() {
 
 	for range time.Tick(requestInterval) {
 		go func() {
-			if summonerScheduler.Size() <= 100 {
+			if summonerScheduler.Size() <= 1000 {
 				matchScheduler.CollectNext()
 			}
 
@@ -54,7 +54,7 @@ func main() {
 					fmt.Print(err)
 					return
 				}
-				matchScheduler.Schedule(collect.NewMatchHistoryCollecter(puuid, lastUpdated))
+				matchScheduler.Schedule(collect.NewMatchHistoryCollecter(puuid, lastUpdated), false)
 			}
 		}()
 	}

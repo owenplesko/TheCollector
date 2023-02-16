@@ -1,4 +1,4 @@
-package collect
+package collection
 
 import (
 	"fmt"
@@ -9,14 +9,16 @@ import (
 )
 
 type MatchHistoryCollecter struct {
-	Puuid string
-	After int64
+	Priority bool
+	Puuid    string
+	After    int64
 }
 
-func NewMatchHistoryCollecter(puuid string, after int64) MatchHistoryCollecter {
+func NewMatchHistoryCollecter(puuid string, after int64, priority bool) MatchHistoryCollecter {
 	return MatchHistoryCollecter{
-		Puuid: puuid,
-		After: after,
+		Priority: priority,
+		Puuid:    puuid,
+		After:    after,
 	}
 }
 
@@ -24,7 +26,7 @@ func (c MatchHistoryCollecter) Id() string {
 	return c.Puuid
 }
 
-func (c MatchHistoryCollecter) Collect(priority bool) error {
+func (c MatchHistoryCollecter) Collect() error {
 	fmt.Printf("Collecting match history for summoner %v\n", c.Puuid)
 	// get match history from riot
 	updatedAt := time.Now().Unix()
@@ -42,7 +44,11 @@ func (c MatchHistoryCollecter) Collect(priority bool) error {
 			wg.Add(1)
 			go func(matchId string) {
 				defer wg.Done()
-				<-matchScheduler.Schedule(NewMatchDetailsCollecter(matchId), priority)
+				if c.Priority {
+					<-priorityMatchScheduler.Schedule(NewMatchDetailsCollecter(matchId, c.Priority))
+				} else {
+					<-matchScheduler.Schedule(NewMatchDetailsCollecter(matchId, c.Priority))
+				}
 			}(matchId)
 		}
 	}

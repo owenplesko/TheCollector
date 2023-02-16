@@ -14,9 +14,9 @@ CREATE TABLE summoner (
     display_name TEXT NOT NULL,
     raw_name TEXT NOT NULL,
     summoner_level INT NOT NULL,
-    last_updated BIGINT,
-    rank_last_updated BIGINT,
-    matches_last_updated BIGINT DEFAULT 0,
+    last_updated BIGINT NOT NULL DEFAULT 0,
+    rank_last_updated BIGINT NOT NULL DEFAULT 0,
+    matches_last_updated BIGINT NOT NULL DEFAULT 0,
 
     UNIQUE(raw_name, region)
 );

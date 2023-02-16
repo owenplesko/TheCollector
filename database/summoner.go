@@ -2,11 +2,12 @@ package db
 
 import (
 	"strings"
-	"thecollector/riot"
+	"thecollector/types"
+	"thecollector/util"
 	"time"
 )
 
-func UpsertSummoner(summoner *riot.Summoner) error {
+func UpsertSummoner(summoner *types.RiotSummonerRes, region string) error {
 	_, err := db.Exec(`
 		INSERT INTO summoner (
 			puuid,
@@ -33,22 +34,95 @@ func UpsertSummoner(summoner *riot.Summoner) error {
 			last_updated= $10
 		`,
 		summoner.Puuid,
-		summoner.Region,
-		summoner.Id,
+		region,
+		summoner.AccountId,
 		summoner.AccountId,
 		summoner.ProfileIconId,
 		summoner.RevisionDate,
 		summoner.Name,
-		toRawName(summoner.Name),
+		util.ToRawName(summoner.Name),
 		summoner.SummonerLevel,
 		time.Now().Unix(),
 	)
 	return err
 }
 
-func SummonerExists(puuid string) bool {
+func QuerySummonerByPuuid(puuid string) (*types.Summoner, error) {
+	var summoner = new(types.Summoner)
+	row := db.QueryRow(`
+		SELECT 
+		puuid, 
+		region, 
+		summoner_id, 
+		account_id, 
+		profile_icon_id,
+		revision_date,
+		display_name,
+		raw_name,
+		summoner_level,
+		last_updated,
+		rank_last_updated,
+		matches_last_updated
+		FROM summoner WHERE puuid=$1`, puuid)
+	err := row.Scan(
+		&summoner.Puuid,
+		&summoner.Region,
+		&summoner.SummonerId,
+		&summoner.AccountId,
+		&summoner.ProfileIconId,
+		&summoner.RevisionDate,
+		&summoner.DisplayName,
+		&summoner.RawName,
+		&summoner.SummonerLevel,
+		&summoner.LastUpdated,
+		&summoner.RankLastUpdated,
+		&summoner.MatchesLastUpdated,
+	)
+	return summoner, err
+}
+
+func QuerySummonerByName(region string, name string) (*types.Summoner, error) {
+	var summoner = new(types.Summoner)
+	row := db.QueryRow(`SELECT 
+		puuid, 
+		region, 
+		summoner_id, 
+		account_id, 
+		profile_icon_id,
+		revision_date,
+		display_name,
+		raw_name,
+		summoner_level,
+		last_updated,
+		rank_last_updated,
+		matches_last_updated
+		FROM summoner WHERE raw_name=$1 AND region=$2 LIMIT 1`, util.ToRawName(name), region)
+	err := row.Scan(
+		&summoner.Puuid,
+		&summoner.Region,
+		&summoner.SummonerId,
+		&summoner.AccountId,
+		&summoner.ProfileIconId,
+		&summoner.RevisionDate,
+		&summoner.DisplayName,
+		&summoner.RawName,
+		&summoner.SummonerLevel,
+		&summoner.LastUpdated,
+		&summoner.RankLastUpdated,
+		&summoner.MatchesLastUpdated,
+	)
+	return summoner, err
+}
+
+func SummonerPuuidExists(puuid string) bool {
 	var exists bool
 	db.QueryRow(`SELECT EXISTS (SELECT 1 FROM summoner WHERE puuid=$1)`, puuid).Scan(&exists)
+	return exists
+}
+
+func SummonerNameExists(region string, name string) bool {
+	var exists bool
+	db.QueryRow(`SELECT EXISTS (SELECT 1 FROM summoner WHERE raw_name=$1 AND region=$2)`, util.ToRawName(name), region).Scan(&exists)
 	return exists
 }
 
@@ -71,8 +145,4 @@ func QueryPuuidMatchesLastUpdated(exclude []string) (string, int64, error) {
 	row := db.QueryRow(queryBuilder.String())
 	err := row.Scan(&puuid, &lastUpdated)
 	return puuid, lastUpdated, err
-}
-
-func toRawName(displayName string) string {
-	return strings.ToLower(strings.TrimSpace(displayName))
 }

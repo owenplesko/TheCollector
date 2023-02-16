@@ -1,4 +1,4 @@
-package collect
+package collection
 
 import (
 	"fmt"
@@ -13,8 +13,8 @@ type SummonerByPuuidCollecter struct {
 
 func NewSummonerByPuuidCollecter(region string, puuid string) SummonerByPuuidCollecter {
 	return SummonerByPuuidCollecter{
-		puuid,
-		region,
+		Puuid:  puuid,
+		Region: region,
 	}
 }
 
@@ -22,7 +22,7 @@ func (c SummonerByPuuidCollecter) Id() string {
 	return c.Puuid
 }
 
-func (c SummonerByPuuidCollecter) Collect(_ bool) error {
+func (c SummonerByPuuidCollecter) Collect() error {
 	fmt.Printf("Collecting summoner %v\n", c.Puuid)
 	// get summoner from riot
 	summoner, err := riot.GetSummonerByPuuid(c.Region, c.Puuid)
@@ -32,7 +32,7 @@ func (c SummonerByPuuidCollecter) Collect(_ bool) error {
 	}
 
 	// store summoner in db
-	err = db.UpsertSummoner(summoner)
+	err = db.UpsertSummoner(summoner, c.Region)
 	if err != nil {
 		fmt.Printf("Error inserting summoner %s into db %s\n", c.Puuid, err)
 	}

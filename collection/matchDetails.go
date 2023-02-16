@@ -1,4 +1,4 @@
-package collect
+package collection
 
 import (
 	"fmt"
@@ -9,12 +9,14 @@ import (
 )
 
 type MatchDetailsCollecter struct {
-	MatchId string
+	Priority bool
+	MatchId  string
 }
 
-func NewMatchDetailsCollecter(matchId string) MatchDetailsCollecter {
+func NewMatchDetailsCollecter(matchId string, priority bool) MatchDetailsCollecter {
 	return MatchDetailsCollecter{
-		MatchId: matchId,
+		Priority: priority,
+		MatchId:  matchId,
 	}
 }
 
@@ -22,7 +24,7 @@ func (c MatchDetailsCollecter) Id() string {
 	return c.MatchId
 }
 
-func (c MatchDetailsCollecter) Collect(priority bool) error {
+func (c MatchDetailsCollecter) Collect() error {
 	fmt.Printf("Collecting match %v\n", c.MatchId)
 	region := strings.Split(c.MatchId, "_")[0]
 
@@ -38,11 +40,16 @@ func (c MatchDetailsCollecter) Collect(priority bool) error {
 	errorChan := make(chan error)
 
 	for _, puuid := range match.MetaData.Participants {
-		if !db.SummonerExists(puuid) {
+		if !db.SummonerPuuidExists(puuid) {
 			wg.Add(1)
 			go func(puuid string) {
 				defer wg.Done()
-				err := <-summonerScheduler.Schedule(NewSummonerByPuuidCollecter(region, puuid), priority)
+				var err error
+				if c.Priority {
+					err = <-prioritySummonerScheduler.Schedule(NewSummonerByPuuidCollecter(region, puuid))
+				} else {
+					err = <-summonerScheduler.Schedule(NewSummonerByPuuidCollecter(region, puuid))
+				}
 				if err != nil {
 					errorChan <- err
 				}

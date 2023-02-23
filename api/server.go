@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"net/url"
 	"thecollector/collection"
 	db "thecollector/database"
 
@@ -20,15 +21,17 @@ func SummonerByPuuid(c *fiber.Ctx) error {
 		c.Status(404).SendString(err.Error())
 		return err
 	}
-
-	c.JSON(*summoner)
+	c.Status(200).JSON(*summoner)
 	return nil
 }
 
 // summoner/:region/:name
 func SummonerByName(c *fiber.Ctx) error {
 	region := c.Params("region")
-	name := c.Params("name")
+	name, err := url.QueryUnescape(c.Params("name"))
+	if err != nil {
+		c.SendStatus(400)
+	}
 	if !db.SummonerNameExists(region, name) {
 		<-prioritySummonerScheduler.Schedule(collection.NewSummonerByNameCollecter(region, name))
 	}
@@ -37,8 +40,7 @@ func SummonerByName(c *fiber.Ctx) error {
 		c.Status(404).SendString(err.Error())
 		return err
 	}
-
-	c.JSON(*summoner)
+	c.Status(200).JSON(*summoner)
 	return nil
 }
 
@@ -59,7 +61,7 @@ func UpdateSummoner(c *fiber.Ctx) error {
 		c.Status(500).SendString(err.Error())
 		return err
 	}
-	c.SendString("updated!")
+	c.Status(200).Status(200).SendString("updated!")
 	return nil
 }
 
@@ -72,7 +74,7 @@ func MatchHistory(c *fiber.Ctx) error {
 		c.Status(500).SendString(err.Error())
 		return err
 	}
-	c.JSON(matchHistory)
+	c.Status(200).JSON(matchHistory)
 	return nil
 }
 
@@ -84,6 +86,6 @@ func UpdateMatchHistory(c *fiber.Ctx) error {
 		c.Status(500).SendString(err.Error())
 		return err
 	}
-	c.SendString("updated!")
+	c.Status(200).SendString("updated!")
 	return nil
 }

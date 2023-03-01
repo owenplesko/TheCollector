@@ -68,7 +68,7 @@ func UpdateSummoner(c *fiber.Ctx) error {
 // matches/:puuid
 func MatchHistory(c *fiber.Ctx) error {
 	puuid := c.Params("puuid")
-	count := 10
+	count := c.QueryInt("count", 10)
 	matchHistory, err := db.QueryMatchHistory(puuid, count)
 	if err != nil {
 		c.Status(500).SendString(err.Error())
